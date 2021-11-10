@@ -1,3 +1,8 @@
+#Files
+train/images
+train/labels
+train/targets
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
