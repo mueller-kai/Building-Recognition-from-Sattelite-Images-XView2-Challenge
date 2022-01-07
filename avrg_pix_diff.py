@@ -1,6 +1,8 @@
 from PIL import Image
 import os
 import numpy as np
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 #calculate new pixel values if target indicates a building otherwise pix = black
 def generate_diff_targetarea (image_pre, image_post, target, bool):
@@ -185,22 +187,23 @@ def calculate_diff_target_area_for_image(image_pre, image_post, target):
 
     return out
 
-class DestasterVision():
+class DestasterVisionDataset(Dataset):
     def __init__(
         self,
         image_folder='train/images',
         target_folder='',
-        labels_folder=''
+        labels_folder='',
+        transforms = transforms
     ):
 
         self.images_paths_pre = []
-        self.images_paths_post = []
+        #self.images_paths_post = []
 
         self.target_paths_pre = []
-        self.target_paths_post = []
+        #self.target_paths_post = []
 
-        self.labels_paths_pre = []
-        self.labels_paths_post = []
+        #self.labels_paths_pre = []
+        #self.labels_paths_post = []
 
         images_filenames = os.listdir(image_folder)
 
@@ -217,19 +220,19 @@ class DestasterVision():
             self.images_paths_pre.append(os.path.join(image_folder, img_fn))
             pre_target_fn = img_fn.replace('.png', '_target.png')
             self.target_paths_pre.append(os.path.join(target_folder, pre_target_fn))
-            label_fn = img_fn.replace('.png', '.json')
-            self.labels_paths_pre.append(os.path.join(labels_folder, label_fn))
+            #label_fn = img_fn.replace('.png', '.json')
+            #self.labels_paths_pre.append(os.path.join(labels_folder, label_fn))
 
             # add post desaster paths
-            post_img_fn = img_fn.replace('pre_disaster', 'post_disaster')
-            self.images_paths_post.append(os.path.join(image_folder, post_img_fn))
-            post_target_fn = post_img_fn.replace('.png', '_target.png')
-            self.target_paths_post.append(os.path.join(target_folder, post_target_fn))
-            label_fn = post_img_fn.replace('.png', '.json')
-            self.labels_paths_post.append(os.path.join(labels_folder, label_fn))
+            #post_img_fn = img_fn.replace('pre_disaster', 'post_disaster')
+            #self.images_paths_post.append(os.path.join(image_folder, post_img_fn))
+            #post_target_fn = post_img_fn.replace('.png', '_target.png')
+            #self.target_paths_post.append(os.path.join(target_folder, post_target_fn))
+            #label_fn = post_img_fn.replace('.png', '.json')
+            #self.labels_paths_post.append(os.path.join(labels_folder, label_fn))
 
 
-    def get_item(self, index):
+    def __getitem__(self, index):
         image_fn_pre = self.images_paths_pre[index]
         image_fn_post = self.images_paths_post[index]
 
@@ -240,8 +243,8 @@ class DestasterVision():
 
         return image_fn_pre, image_fn_post, target_fn_pre, target_fn_post
 
-    #def get_length(self):
-    #    return len(self.images_paths)
+    def __len__(self):
+        return len(self.images_paths)
 
 
 def calculate_diff_target_area_for_dataset():
