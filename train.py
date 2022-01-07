@@ -1,5 +1,5 @@
 if __name__ == '__main__': 
-	import avrg_pix_diff
+	import dataset
 	import config
 	from model import UNet
 	#import config
@@ -21,17 +21,17 @@ if __name__ == '__main__':
 		config.INPUT_IMAGE_WIDTH)),
 	transforms.ToTensor()])
 
-	destaster_vision_dataset = avrg_pix_diff.DestasterVisionDataset(
-		image_folder='images',
-		target_folder='targets',
-		labels_folder='labels',
+	destaster_vision_dataset = dataset.DestasterVisionDataset(
+		image_folder='train/images',
+		target_folder='train/targets',
+		labels_folder='train/labels',
 		transforms=transforms
 	)
 
-	destaster_vision_testset = avrg_pix_diff.DestasterVisionDataset(
-		image_folder='test_set/images',
-		target_folder='test_set/targets',
-		labels_folder='test_set/labels',
+	destaster_vision_testset = dataset.DestasterVisionDataset(
+		image_folder='test/images',
+		target_folder='test/targets',
+		labels_folder='test/labels',
 		transforms= transforms
 	)
 

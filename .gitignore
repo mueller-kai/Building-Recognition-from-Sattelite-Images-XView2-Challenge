@@ -1,7 +1,6 @@
 #Files
-train/images
-train/labels
-train/targets
+train/
+test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

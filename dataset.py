@@ -3,6 +3,7 @@ import os
 import numpy as np
 from torch.utils.data import Dataset
 from torchvision import transforms
+import cv2
 
 #calculate new pixel values if target indicates a building otherwise pix = black
 def generate_diff_targetarea (image_pre, image_post, target, bool):
@@ -204,6 +205,7 @@ class DestasterVisionDataset(Dataset):
 
         #self.labels_paths_pre = []
         #self.labels_paths_post = []
+        self.transforms = transforms
 
         images_filenames = os.listdir(image_folder)
 
@@ -234,17 +236,28 @@ class DestasterVisionDataset(Dataset):
 
     def __getitem__(self, index):
         image_fn_pre = self.images_paths_pre[index]
-        image_fn_post = self.images_paths_post[index]
+        #image_fn_post = self.images_paths_post[index]
 
         target_fn_pre = self.target_paths_pre[index]
-        target_fn_post = self.target_paths_post[index]
+        #target_fn_post = self.target_paths_post[index]
 
         #label_fn = self.labels_paths[index]
 
-        return image_fn_pre, image_fn_post, target_fn_pre, target_fn_post
+        image = cv2.imread(image_fn_pre)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        target = cv2.imread(target_fn_pre, 0)
+
+		# check to see if we are applying any transformations
+        if self.transforms is not None:
+			# apply the transformations to both image and its mask
+            image = self.transforms(image) 
+            target = self.transforms(target)
+
+        return (image, target)
 
     def __len__(self):
-        return len(self.images_paths)
+        return len(self.images_paths_pre)
 
 
 def calculate_diff_target_area_for_dataset():
