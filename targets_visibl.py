@@ -1,13 +1,32 @@
 from PIL import Image
+import cv2 as cv
+import os
 
-im = Image.open('/Volumes/externe_ssd/disaster-vision/train/targets/guatemala-volcano_00000024_post_disaster_target.png')
-pix = im.load()
+##
+## SCRIPT not yet functional
+##
 
-#multiply pixelvalues by 100
-#it will show the three different pixelvalues used in the target.pngs
-for x in range(1024):
-    for y in range(1024):
-        newvalue = pix[x,y] * 100
-        im.putpixel((x, y), newvalue)
 
-im.save("new_shaded_g_24.png")
+def upscale_pix_values(target_filename):
+    #pre targets
+    if 'pre' in target_filename:
+        target_path_complete = 'train/' + 'targets/' + target_filename
+        img = cv.imread(target_path_complete)
+        th, threshimg = cv.threshold(img, 0, 255, cv.THRESH_BINARY)
+        cv.imwrite('train/' + 'new_targets/' + target_filename, threshimg)
+    #post targets
+    else:
+        target_path_complete = 'train/' + 'targets/' + target_filename
+        img = Image.open(target_path_complete)
+        imgage = img.load()
+        for x in range(1024):
+            for y in range(1024):
+                newvalue = imgage[x,y] * 100
+                Image.putpixel((x, y), newvalue)
+        Image.save('train/' + 'new_targets/' + target_filename)
+
+
+if __name__ == '__main__':
+    target_filenames = os.listdir('train/targets')
+    for target_filename in target_filenames:
+        upscale_pix_values(target_filename)

@@ -8,6 +8,7 @@ from torch.nn import ReLU
 from torchvision.transforms import CenterCrop
 from torch.nn import functional as F
 import torch
+import config
 
 #Creating block unit for encoder und decoder (needs the Module from pytorch as input)
 class Block(Module):
@@ -22,6 +23,7 @@ class Block(Module):
 	def forward(self, x):
 		# apply CONV => RELU => CONV block to the inputs and return it
 		return self.conv2(self.relu(self.conv1(x)))
+
 
 class Encoder(Module):
 	def __init__(self, channels=(3, 16, 32, 64)):
@@ -43,6 +45,25 @@ class Encoder(Module):
 			x = self.pool(x)
 		# return the list containing the intermediate outputs
 		return blockOutputs
+
+class UNet(Module):
+    def __init__(self, encChannels=(3, 16, 32, 64), decChannels=(64,32,16), nbClasses=1, retainDim=True, outSize=(config.INPUT_IMAGE_HEIGHT, config.INPUT_IMAGE_WIDTH)):
+        super().__init__()
+        self.encoder = Encoder(encChannels)
+        self.decoder = Decoder(decChannels)
+        self.head = Conv2d(decChannels[-1], nbClasses, 1)
+        self.retainDim = retainDim
+        self.outsize = outSize
+    
+    def forward(self, x):
+        encFeatures = self.encoder(x)
+        decFeatures = self.decoder(encFeatures[::-1][0], encFeatures[::-1][1:])
+        map = self.head(decFeatures)
+
+        if self.retainDim:
+            map = F.interpolate(map, self.outsize)
+        
+        return map
 
 class Decoder(Module):
 	def __init__(self, channels=(64, 32, 16)):
@@ -77,32 +98,3 @@ class Decoder(Module):
 		encFeatures = CenterCrop([H, W])(encFeatures)
 		# return the cropped features
 		return encFeatures
-
-class UNet(Module):
-	def __init__(self, encChannels=(3, 16, 32, 64), decChannels=(64, 32, 16), nbClasses=1, retainDim=True, outSize=(1024, 1024)):
-
-		super().__init__()
-		# initialize the encoder and decoder
-		self.encoder = Encoder(encChannels)
-		self.decoder = Decoder(decChannels)
-		# initialize the regression head and store the class variables
-		self.head = Conv2d(decChannels[-1], nbClasses, 1)
-		self.retainDim = retainDim
-		self.outSize = outSize
-
-	def forward(self, x):
-		# grab the features from the encoder
-		encFeatures = self.encoder(x)
-		# pass the encoder features through decoder making sure that
-		# their dimensions are suited for concatenation
-		decFeatures = self.decoder(encFeatures[::-1][0],
-			encFeatures[::-1][1:])
-		# pass the decoder features through the regression head to
-		# obtain the segmentation mask
-		map = self.head(decFeatures)
-		# check to see if we are retaining the original output
-		# dimensions and if so, then resize the output to match them
-		if self.retainDim:
-			map = F.interpolate(map, self.outSize)
-		# return the segmentation map
-		return map

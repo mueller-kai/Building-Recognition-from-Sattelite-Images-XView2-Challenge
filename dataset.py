@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import Dataset
 from torchvision import transforms
 import cv2
+import config
 
 #calculate new pixel values if target indicates a building otherwise pix = black
 def generate_diff_targetarea (image_pre, image_post, target, bool):
@@ -191,7 +192,7 @@ def calculate_diff_target_area_for_image(image_pre, image_post, target):
 class DestasterVisionDataset(Dataset):
     def __init__(
         self,
-        image_folder='train/images',
+        image_folder='',
         target_folder='',
         labels_folder='',
         transforms = transforms
@@ -208,8 +209,13 @@ class DestasterVisionDataset(Dataset):
         self.transforms = transforms
 
         images_filenames = os.listdir(image_folder)
-
+        counter = 0
         for img_fn in images_filenames:
+            counter += 1
+            #Create dataset only with a part of the total images
+            if counter > config.NUMBER_PICS_IN_DATASET:
+                continue
+
             # ignore mac files
             if img_fn.startswith('.'):
                 continue
@@ -262,7 +268,7 @@ class DestasterVisionDataset(Dataset):
 
 def calculate_diff_target_area_for_dataset():
 
-    destaster_vision_dataset = DestasterVision(
+    destaster_vision_dataset = DestasterVisionDataset(
         image_folder='train/images',
         target_folder='train/targets',
         labels_folder='train/labels'
@@ -277,7 +283,7 @@ def calculate_diff_target_area_for_dataset():
 
     num_items_in_desaster_dataset = len(destaster_vision_dataset.images_paths_pre)
     for index in range(100): #range(num_items_in_desaster_dataset):
-        image_fn_pre, image_fn_post, target_fn_pre, target_fn_post = destaster_vision_dataset.get_item(index)
+        image_fn_pre, image_fn_post, target_fn_pre, target_fn_post = destaster_vision_dataset.__getitem__(index)
         diffs_single_image = calculate_diff_target_area_for_image(image_fn_pre, image_fn_post, target_fn_post)
         for key, value in diffs_single_image.items():
             diff_all_images[key] += value

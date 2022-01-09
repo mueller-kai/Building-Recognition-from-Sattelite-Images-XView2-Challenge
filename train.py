@@ -23,14 +23,14 @@ if __name__ == '__main__':
 
 	destaster_vision_dataset = dataset.DestasterVisionDataset(
 		image_folder='train/images',
-		target_folder='train/targets',
+		target_folder='train/new_targets',
 		labels_folder='train/labels',
 		transforms=transforms
 	)
 
 	destaster_vision_testset = dataset.DestasterVisionDataset(
 		image_folder='test/images',
-		target_folder='test/targets',
+		target_folder='test/new_targets',
 		labels_folder='test/labels',
 		transforms= transforms
 	)
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 	testSteps = destaster_vision_testset.__len__() // config.BATCH_SIZE
 
 	#create empt dict to store history
-	history = {'train': []}
+	history = {'train_loss': [], 'test_loss': []}
 
 	#loop over epochs
 	print("[INFO] starting training")
@@ -129,10 +129,10 @@ if __name__ == '__main__':
 	# plot the training loss
 	plt.style.use("ggplot")
 	plt.figure()
-	plt.plot(H["train_loss"], label="train_loss")
-	plt.plot(H["test_loss"], label="test_loss")
+	plt.plot(history["train_loss"], label="train_loss")
+	plt.plot(history["test_loss"], label="test_loss")
 	plt.title("Training Loss on Dataset")
-	plt.xlabel("Epoch #")
+	plt.xlabel("Epoch")
 	plt.ylabel("Loss")
 	plt.legend(loc="lower left")
 	plt.savefig(config.PLOT_PATH)
