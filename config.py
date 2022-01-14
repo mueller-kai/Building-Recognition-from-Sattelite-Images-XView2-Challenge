@@ -4,8 +4,8 @@ import os
 # initialize learning rate, number of epochs to train for, and the
 # batch size
 INIT_LR = 0.001
-NUM_EPOCHS = 4
-BATCH_SIZE = 4
+NUM_EPOCHS = 15
+BATCH_SIZE = 6
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
