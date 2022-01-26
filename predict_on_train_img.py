@@ -27,7 +27,7 @@ def prepare_plot(origImage, origMask, predMask):
     plt.savefig("plot.png")
     plt.show
 
-def make_predictions(model, imagePath, imagecounter):
+def make_predictions(model, imagePath):
     # set model to evaluation mode
     model.eval()
     # turn off gradient tracking
@@ -37,9 +37,8 @@ def make_predictions(model, imagePath, imagecounter):
         image = cv2.imread(imagePath)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = image.astype("float32") / 255.0
-
         # resize the image and make a copy of it for visualization
-        # image = cv2.resize(image, (128, 128))
+        image = cv2.resize(image, (128, 128))
         orig = image.copy()
         # find the filename and generate the path to ground truth
         # mask
@@ -47,17 +46,11 @@ def make_predictions(model, imagePath, imagecounter):
 
         #add "target" to groundtruth
         groundTruthfilename = (filename[:-4]) + "_target.png" 
-        groundTruthPath = os.path.join('test/' + 'targets/' +
+        groundTruthPath = os.path.join("train/new_targets",
             groundTruthfilename)
-        #save groundtruth to evaluate xview2_scoring.py
-        scoring_gt = cv2.imread(groundTruthPath)
-        imagecounter = '{0:0>5}'.format(imagecounter)
-        cv2.imwrite(f"scoring/gt-targets/test_localization_{imagecounter}_target.png", scoring_gt)
-        cv2.imwrite(f"scoring/gt-targets/test_damage_{imagecounter}_target.png", scoring_gt)
-        
-
         # load the ground-truth segmentation mask in grayscale mode
         # and resize it
+        print(imagePath, groundTruthPath)
         gtMask = cv2.imread(groundTruthPath, 0)
         gtMask = cv2.resize(gtMask, (config.INPUT_IMAGE_HEIGHT,
             config.INPUT_IMAGE_HEIGHT))
@@ -73,39 +66,29 @@ def make_predictions(model, imagePath, imagecounter):
         predMask = model(image).squeeze()
         predMask = torch.sigmoid(predMask)
         predMask = predMask.cpu().numpy()
-
         # filter out the weak predictions and convert them to integers
-        #Does not multiply but set ass pixel above threshhold to 255 LuL?
-
         predMask = (predMask > config.THRESHOLD) * 255
         predMask = predMask.astype(np.uint8)
 
         #save prediction mask
         predMaskimg = Image.fromarray(predMask)
-        filename = filename[:-17]
-        print(f"input image: {filename}")
+        predMaskimg.save("prediction.jpeg")
 
-        #save prediction Masks but save localisation as damage prediction as well
-        predMaskimg.save(f"scoring/predictions/test_localization_{imagecounter}_prediction.png")
-        predMaskimg.save(f"scoring/predictions/test_damage_{imagecounter}_prediction.png")
-
-        #prepare a plot for visualization
+        #orig.save("original.jpeg")
+        
+        # prepare a plot for visualization
         prepare_plot(orig, gtMask, predMask)
 
 if __name__ == '__main__':
     # load the image paths in our testing file and randomly select 10
     # image paths
     print("[INFO] loading up test image paths...")
-
-    imagePaths = config.TEST_PATHS
-    imagePaths = np.random.choice(imagePaths, size=10)
+    imagePaths = config.TRAIN_PATHS
+    imagePaths = np.random.choice(imagePaths, size=1)
     # load our model from disk and flash it to the current device
     print("[INFO] load up model...")
     unet = torch.load(config.MODEL_PATH).to(config.DEVICE)
     # iterate over the randomly selected test image paths
-    imagecounter = 0
-    print (imagePaths)
     for path in imagePaths:
         # make predictions and visualize the results
-        make_predictions(unet, path, imagecounter)
-        imagecounter += 1
+        make_predictions(unet, path)
