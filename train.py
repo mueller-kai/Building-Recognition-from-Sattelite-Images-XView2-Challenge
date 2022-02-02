@@ -46,6 +46,11 @@ if __name__ == '__main__':
 
 	# initialize our UNet model
 	unet = UNet().to(config.DEVICE)
+
+	#load model
+	unet = torch.load('output02-02/unet_disaster_vision_BCEWLL_200_newT.pthe220_.pth')
+
+
 	lossFunc = BCEWithLogitsLoss()
 	optimizer = Adam(unet.parameters(), lr=config.INIT_LR)
 
@@ -85,6 +90,7 @@ if __name__ == '__main__':
 			# perform a forward pass and calculate the training loss
 			pred = unet(x)
 			loss = lossFunc(pred, y)
+
 			# first, zero out any previously accumulated gradients, then
 			# perform backpropagation, and then update model parameters
 			optimizer.zero_grad()
@@ -122,6 +128,8 @@ if __name__ == '__main__':
 		#save model every 10 Epoch
 		if e % 10 == 0:
 			print("saved‚")
+			#start at epoch
+			e = e + 230
 			torch.save(unet, config.MODEL_PATH + f"e{e}_.pth")
 
 			# plot the training loss

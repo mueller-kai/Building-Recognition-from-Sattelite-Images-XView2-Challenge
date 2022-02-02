@@ -22,14 +22,16 @@ def prepare_plot(origImage, origMask, predMask):
     ax[1].set_title("Original Mask")
     ax[2].set_title("Predicted Mask")
     # set the layout of the figure and display it
-    figure.tight_layout()
-    figure.show()
+    #figure.tight_layout()
+    #figure.show()
     plt.savefig("plot.png")
     plt.show
 
 def make_predictions(model, imagePath, imagecounter):
     # set model to evaluation mode
     model.eval()
+
+    threshhold = round(config.THRESHOLD * 100)
     # turn off gradient tracking
     with torch.no_grad():
         # load the image from disk, swap its color channels, cast it
@@ -39,7 +41,7 @@ def make_predictions(model, imagePath, imagecounter):
         image = image.astype("float32") / 255.0
 
         # resize the image and make a copy of it for visualization
-        # image = cv2.resize(image, (128, 128))
+        #image = cv2.resize(image, (128, 128))
         orig = image.copy()
         # find the filename and generate the path to ground truth
         # mask
@@ -49,18 +51,12 @@ def make_predictions(model, imagePath, imagecounter):
         groundTruthfilename = (filename[:-4]) + "_target.png" 
         groundTruthPath = os.path.join('test/' + 'targets/' +
             groundTruthfilename)
-        #save groundtruth to evaluate xview2_scoring.py
-        scoring_gt = cv2.imread(groundTruthPath)
-        imagecounter = '{0:0>5}'.format(imagecounter)
-        cv2.imwrite(f"scoring/gt-targets/test_localization_{imagecounter}_target.png", scoring_gt)
-        cv2.imwrite(f"scoring/gt-targets/test_damage_{imagecounter}_target.png", scoring_gt)
-        
 
-        # load the ground-truth segmentation mask in grayscale mode
-        # and resize it
-        gtMask = cv2.imread(groundTruthPath, 0)
-        gtMask = cv2.resize(gtMask, (config.INPUT_IMAGE_HEIGHT,
-            config.INPUT_IMAGE_HEIGHT))
+        #save groundtruth to evaluate xview2_scoring.py
+        gt_target = cv2.imread(groundTruthPath, 0)
+        imagecounter = '{0:0>5}'.format(imagecounter)
+        cv2.imwrite(f"predictionT{threshhold}/gt-targets/test_localization_{imagecounter}_target.png", gt_target)
+        cv2.imwrite(f"predictionT{threshhold}/gt-targets/test_damage_{imagecounter}_target.png", gt_target)
 
         # make the channel axis to be the leading one, add a batch
         # dimension, create a PyTorch tensor, and flash it to the
@@ -68,6 +64,7 @@ def make_predictions(model, imagePath, imagecounter):
         image = np.transpose(image, (2, 0, 1))
         image = np.expand_dims(image, 0)
         image = torch.from_numpy(image).to(config.DEVICE)
+        
         # make the prediction, pass the results through the sigmoid
         # function, and convert the result to a NumPy array
         predMask = model(image).squeeze()
@@ -75,36 +72,40 @@ def make_predictions(model, imagePath, imagecounter):
         predMask = predMask.cpu().numpy()
 
         # filter out the weak predictions and convert them to integers
-        #Does not multiply but set ass pixel above threshhold to 255 LuL?
+        print("predicted", predMask.max())
+        predMask = (predMask > config.THRESHOLD)
 
-        predMask = (predMask > config.THRESHOLD) * 255
         predMask = predMask.astype(np.uint8)
+
+        #create a visible Prediction
+        #visible_prediction = predMask * 255
+        #visible_prediction = Image.fromarray(visible_prediction)
+        #visible_prediction.save(f"predictionT{threshhold}/visible-predictions/test_localization_{imagecounter}_prediction.png")
 
         #save prediction mask
         predMaskimg = Image.fromarray(predMask)
         filename = filename[:-17]
-        print(f"input image: {filename}")
+        print(f"input image: {filename} ,", imagecounter)
 
         #save prediction Masks but save localisation as damage prediction as well
-        predMaskimg.save(f"scoring/predictions/test_localization_{imagecounter}_prediction.png")
-        predMaskimg.save(f"scoring/predictions/test_damage_{imagecounter}_prediction.png")
+        predMaskimg.save(f"predictionT{threshhold}/predictions/test_localization_{imagecounter}_prediction.png")
+        predMaskimg.save(f"predictionT{threshhold}/predictions/test_damage_{imagecounter}_prediction.png")
 
         #prepare a plot for visualization
-        prepare_plot(orig, gtMask, predMask)
+        #prepare_plot(orig, gt_target, predMask)
 
 if __name__ == '__main__':
     # load the image paths in our testing file and randomly select 10
     # image paths
     print("[INFO] loading up test image paths...")
-
     imagePaths = config.TEST_PATHS
-    imagePaths = np.random.choice(imagePaths, size=10)
+    #imagePaths = np.random.choice(imagePaths, size=5)
     # load our model from disk and flash it to the current device
-    print("[INFO] load up model...")
+    print("[INFO] load up model", config.MODEL_PATH)
+    print('threshhold:', config.THRESHOLD)
     unet = torch.load(config.MODEL_PATH).to(config.DEVICE)
     # iterate over the randomly selected test image paths
     imagecounter = 0
-    print (imagePaths)
     for path in imagePaths:
         # make predictions and visualize the results
         make_predictions(unet, path, imagecounter)

@@ -239,7 +239,39 @@ class DestasterVisionDataset(Dataset):
             #self.target_paths_post.append(os.path.join(target_folder, post_target_fn))
             #label_fn = post_img_fn.replace('.png', '.json')
             #self.labels_paths_post.append(os.path.join(labels_folder, label_fn))
+        '''
+        #add augmented images
+        for img_fn in images_filenames:
+            #counter += 1
+            #Create dataset only with a part of the total images
+            #if counter > 100:
+            #    continue
 
+            # ignore mac files
+            if img_fn.startswith('.'):
+                continue
+
+            # remove post desaster images
+            if 'post_disaster' in img_fn:
+                continue
+            
+            #only add augmented pictures of houses, we dont need more of the other stuff
+            
+                # add pre desaster paths
+                self.images_paths_pre.append(os.path.join(image_folder, img_fn))
+                pre_target_fn = img_fn.replace('.png', '_target.png')
+                self.target_paths_pre.append(os.path.join(target_folder, pre_target_fn))
+                #label_fn = img_fn.replace('.png', '.json')
+                #self.labels_paths_pre.append(os.path.join(labels_folder, label_fn))
+
+                # add post desaster paths
+                #post_img_fn = img_fn.replace('pre_disaster', 'post_disaster')
+                #self.images_paths_post.append(os.path.join(image_folder, post_img_fn))
+                #post_target_fn = post_img_fn.replace('.png', '_target.png')
+                #self.target_paths_post.append(os.path.join(target_folder, post_target_fn))
+                #label_fn = post_img_fn.replace('.png', '.json')
+                #self.labels_paths_post.append(os.path.join(labels_folder, label_fn))
+        '''
 
     def __getitem__(self, index):
         cv2.setNumThreads(0)

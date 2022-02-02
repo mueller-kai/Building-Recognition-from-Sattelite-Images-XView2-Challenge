@@ -3,6 +3,24 @@ train/
 test/
 validation/
 output/
+output02-02/
+output27-01/
+prediction/
+predictionT20/
+predictionT25/
+predictionT30/
+predictionT31/
+predictionT32/
+predictionT35/
+predictionT40/
+predictionT50/
+traindebricated/
+validationdebricated
+
+test_images_labels_targets.tar.gz
+tier3.tar.gz
+train_images_labels_targets.tar.gz
+validation_images_labels_targets.tar.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

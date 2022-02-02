@@ -46,7 +46,7 @@ def make_predictions(model, imagePath):
 
         #add "target" to groundtruth
         groundTruthfilename = (filename[:-4]) + "_target.png" 
-        groundTruthPath = os.path.join("train/new_targets",
+        groundTruthPath = os.path.join("traindebricated/new_targets",
             groundTruthfilename)
         # load the ground-truth segmentation mask in grayscale mode
         # and resize it

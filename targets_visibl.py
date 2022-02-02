@@ -78,4 +78,4 @@ if __name__ == '__main__':
     #upscale_pix_values(target_filenames)
     #downscale_pix_values(target_filenames)
     handler = targetHandler(target_filenames)
-    handler.upscale_pix_values()
+    handler.count_amount_pix_houses()

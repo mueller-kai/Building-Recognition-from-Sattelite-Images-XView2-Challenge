@@ -17,6 +17,7 @@ import os, json
 
 import numpy as np
 import pandas as pd
+import config
 
 from multiprocessing import Pool, cpu_count
 from pathlib import Path
@@ -62,6 +63,9 @@ class RowPairCalculator:
     Contains all the information and functions necessary to calculate the true positives (TPs),
     false negatives (FNs), and false positives (FPs), for a pair of localization/damage predictions 
     """
+    def __init__(self):
+        self.globalTN = 0
+
     @staticmethod
     def extract_buildings(x:np.ndarray):
         """ Returns a mask of the buildings in x """
@@ -141,6 +145,7 @@ class F1Recorder:
         assert 0 <= self.P <= 1 and 0 <= self.R <= 1
         if self.P == 0 or self.R == 0: return 0
         return (2*self.P*self.R)/(self.P+self.R)
+        
 
 class XviewMetrics:
     """
@@ -214,12 +219,14 @@ class XviewMetrics:
         dcolumns = ['dTP1','dFN1','dFP1','dTP2','dFN2','dFP2',
                     'dTP3','dFN3','dFP3','dTP4','dFN4','dFP4']
         self.ddf = pd.DataFrame([drow for lrow,drow in all_rows], columns=dcolumns)
+        
     
     def get_lf1r(self):
         """ localization f1 recorder """
         TP = self.ldf['lTP'].sum()
         FP = self.ldf['lFP'].sum()
         FN = self.ldf['lFN'].sum()
+        print('TP :', TP, 'FN ;', FN, 'FP :', FP)
         self.lf1r = F1Recorder(TP, FP, FN, 'Buildings')
         
     @property
@@ -250,7 +257,7 @@ class XviewMetrics:
     @property
     def score(self):
         """ xview2 score computed as a weighted average of the localization f1 and damage f1 """
-        return 0.3 * self.lf1 + 0.7 * self.df1
+        return 1 * self.lf1 + 0 * self.df1
         
     @classmethod
     def compute_score(cls, pred_dir, targ_dir, out_fp):
@@ -272,6 +279,8 @@ class XviewMetrics:
         d['damage_f1_major_damage'] = self.df1s[2]
         d['damage_f1_destroyed'] = self.df1s[3]
         
+        threshhold = str(round(config.THRESHOLD * 100))
+        out_fp = out_fp+ 'T' + threshhold + '.json'
         with open(out_fp, 'w') as f: json.dump(d, f)
         print(f"Wrote metrics to {out_fp}")
 

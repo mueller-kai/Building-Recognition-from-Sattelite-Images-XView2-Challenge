@@ -14,7 +14,7 @@ INPUT_IMAGE_HEIGHT = 1024
 INPUT_IMAGE_WIDTH = 1024
 
 BASE_OUTPUT = "output"
-MODEL_PATH = os.path.join(BASE_OUTPUT, "unet_disaster_vision_after_dataloader_fixe190_.pth")
+MODEL_PATH = os.path.join(BASE_OUTPUT, "unet_disaster_vision_BCEWLL_200_newT.pthe210_.pth")
 PLOT_PATH = os.path.sep.join([BASE_OUTPUT, "plot.png"])
 
 TRAIN_PATHS = os.path.sep.join(["train", "images"])
@@ -39,6 +39,6 @@ TEST_PATHS = [x for x in TEST_PATHS if "pre" in x]
 GROUNDTRUTH_MASKS = os.path.sep.join(["test", "new_targets"])
 
 # define threshold to filter weak predictions
-THRESHOLD = 0.5
+THRESHOLD = 0.31
 
 NUMBER_PICS_IN_DATASET = 800
