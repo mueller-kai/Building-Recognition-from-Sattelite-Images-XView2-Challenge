@@ -16,6 +16,9 @@ predictionT40/
 predictionT50/
 traindebricated/
 validationdebricated
+predictions U-Net2.1
+predictions U-Net1.0
+
 
 test_images_labels_targets.tar.gz
 tier3.tar.gz

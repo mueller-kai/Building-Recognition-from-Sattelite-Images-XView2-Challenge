@@ -78,9 +78,9 @@ def make_predictions(model, imagePath, imagecounter):
         predMask = predMask.astype(np.uint8)
 
         #create a visible Prediction
-        #visible_prediction = predMask * 255
-        #visible_prediction = Image.fromarray(visible_prediction)
-        #visible_prediction.save(f"predictionT{threshhold}/visible-predictions/test_localization_{imagecounter}_prediction.png")
+        visible_prediction = predMask * 255
+        visible_prediction = Image.fromarray(visible_prediction)
+        visible_prediction.save(f"predictionT{threshhold}/visible-predictions/test_localization_{imagecounter}_prediction.png")
 
         #save prediction mask
         predMaskimg = Image.fromarray(predMask)

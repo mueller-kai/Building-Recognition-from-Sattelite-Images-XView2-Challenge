@@ -50,8 +50,6 @@ if __name__ == '__main__':
 	#load model
 	unet = torch.load('output02-02/unet_disaster_vision_BCEWLL_200_newT.pthe220_.pth')
 
-
-	lossFunc = BCEWithLogitsLoss()
 	optimizer = Adam(unet.parameters(), lr=config.INIT_LR)
 
 	#calculate needed training steps
@@ -73,32 +71,44 @@ if __name__ == '__main__':
 		totalTrainLoss = 0
 		totalValidationLoss = 0
 		currentstep = 0
+
+		#dict of loss calculated per image
+		loss_list = []
+
 		# loop over the training set
 		for (i, (x, y)) in enumerate(trainloader):
 
-			#debug print statements
-			#print(f'cuurent step: {currentstep} of {trainSteps} steps')
-			#print currently used picture names
-			#print(f"i: {i}")
-			#print(trainloader.dataset.images_paths_pre[i])
-			#print(trainloader.dataset.target_paths_pre[i])
-			# send the input to the device
-
 			print(f"i:{i} ", end = "", flush=True)
-			
+
+			# send the input to the device
 			(x, y) = (x.to(config.DEVICE), y.to(config.DEVICE))
 			# perform a forward pass and calculate the training loss
 			pred = unet(x)
-			loss = lossFunc(pred, y)
 
-			# first, zero out any previously accumulated gradients, then
-			# perform backpropagation, and then update model parameters
+			#craete pos weight based on target
+			#goal is to have 16 were houses are and 1 where background is
+			pos_weight = y.clone()
+			pos_weight[pos_weight == 1] = 16
+			pos_weight[pos_weight == 0] = 1
+
+			lossFunc = BCEWithLogitsLoss(pos_weight=pos_weight)
+			loss = lossFunc(pred, y)
+			# loss_list.append(loss)
+
+			# only perform these steps after 8 images (considering Batchsize 1) to save time
+			#if i % 4 == 0:
+			#	loss_of_last_4_pictures = sum(loss_list)/4
+				
+				# print(loss_of_last_4_pictures, 'loss_of_last_4_pictures')# first, zero out any previously accumulated gradients, then
+				# perform backpropagation, and then update model parameters
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
-			# add the loss to the total training loss so far
+				# add the loss to the total training loss so far
 			totalTrainLoss += loss.item()
-			currentstep += 1
+				#currentstep += 1
+				#	print('train','loss.item',loss_of_last_4_pictures.item(), end = "", flush=True)
+				#	loss_list.clear()
 
 		print("switching off autograd")
 		# switch off autograd
@@ -111,7 +121,13 @@ if __name__ == '__main__':
 				(x, y) = (x.to(config.DEVICE), y.to(config.DEVICE))
 				# make the predictions and calculate the validation loss
 				pred = unet(x)
+				pos_weight = y.clone()
+				pos_weight[pos_weight == 1] = 16
+				pos_weight[pos_weight == 0] = 1
+
+				lossFunc = BCEWithLogitsLoss(pos_weight=pos_weight)
 				totalValidationLoss += lossFunc(pred, y).item()
+				print('validation','losfunc(pred,y).ite',lossFunc(pred, y).item())
 		
 		# calculate the average training and validation loss
 		print("calculating losses")
@@ -125,11 +141,10 @@ if __name__ == '__main__':
 		print("Train loss: {:.6f}, Validation loss: {:.4f}".format(
 			avgTrainLoss, avgValidationLoss))
 
-		#save model every 10 Epoch
-		if e % 10 == 0:
+		#save model every 3 Epoch
+		if e % 3 == 0:
 			print("saved‚")
 			#start at epoch
-			e = e + 230
 			torch.save(unet, config.MODEL_PATH + f"e{e}_.pth")
 
 			# plot the training loss
