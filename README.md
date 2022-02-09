@@ -1,4 +1,4 @@
-Disaster-Vision
+ # Building localization on Satelite imagery
 
 The automated recognition of buildings is the first step towards an automated assessment of building
 damage on the basis of satellite images in the event of a disaster, which in turn offers a time advantage
@@ -22,8 +22,8 @@ torch.load("U-Net/U-Net2.0/unet2.0_disaster_vision_BCEWLL_.pth")
      - gt-targets
      - visible-predictions
      
- # Note that there will be damage predictions saved in the folder, you can ignore them. They contain the same pictures
- # as the localization predictions and are only needed to satisfy the scoring_xView2.py script
+ Note that there will be damage predictions saved in the folder, you can ignore them. They contain the same pictures
+ as the localization predictions and are only needed to satisfy the scoring_xView2.py script
 
 Score: 
 U-Net2.1 and U-Net 1.1 with their specified threshholds reach an F1 score of 0.62
